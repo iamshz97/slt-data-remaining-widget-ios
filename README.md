@@ -24,7 +24,7 @@ This repository contains the code for a Scriptable widget that displays the rema
 4. Run the script in the Scriptable app, and the widget will be displayed.
 5. To add the widget to your home screen, press and hold an empty space on the home screen, tap the "+" button, and select "Scriptable". Choose the size of the widget you want to add, then tap "Add Widget". Finally, tap "Done".
 
-## Customization 💅
+## Customization
 
 You can customize the widget by modifying the colors, fonts, and other elements of the design in the `createWidget` function. Feel free to make any changes you'd like to better suit your preferences or match your device's theme.
 
