@@ -30,6 +30,8 @@ This repository contains the code for a Scriptable widget that displays the rema
 
 You can customize the widget by modifying the colors, fonts, and other elements of the design in the `createWidget` function. Feel free to make any changes you'd like to better suit your preferences or match your device's theme.
 
+<img src="img/2023-05-01-15-29-06.png" alt="SLT Mobitel Data Usage Widget screenshot" width="500" height="500">
+
 ## Disclaimer 🚨
 
 Please make sure you don't share the script with your SLT Mobitel credentials (username and password) publicly. Keep your credentials secure and only use them on trusted devices.
