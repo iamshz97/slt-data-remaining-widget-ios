@@ -1,16 +1,66 @@
 // Define constants
 const LOGIN_URL = "https://omniscapp.slt.lk/mobitelint/slt/api/Account/Login";
 const DASHBOARD_URL =
-  "https://omniscapp.slt.lk/mobitelint/slt/api/BBVAS/GetDashboardVASBundles?subscriberID=94812232278";
-const USERNAME = "xxxxxxxx@gmail.com";
-const PASSWORD = "xxxxxx234234dsf";
+  "https://omniscapp.slt.lk/mobitelint/slt/api/BBVAS/UsageSummary?subscriberID=";
 const CHANNEL_ID = "WEB";
 const CLIENT_ID = "41aed706-8fdf-4b1e-883e-91e44d7f379b";
 const LOGO_URL =
   "https://play-lh.googleusercontent.com/qCEwpUDhKk1UtqGGgKFXQR9hhve9xw9fKg39pHbMAsVkgwSmfUGlidInEtrZEzSwdGo";
 
+// Function to get the username, password, and subscriber ID from a pop-up
+async function getUsernamePasswordAndSubscriberID() {
+  const alert = new Alert();
+  alert.title = "Login";
+  alert.message = "Please enter your username, password, and subscriber ID.";
+
+  alert.addTextField("Username (e.g. john@mail.com)", "");
+  alert.addSecureTextField("Password", "");
+  alert.addTextField("Subscriber ID (e.g. 94812232278)", "");
+
+  alert.addAction("Submit");
+  alert.addCancelAction("Cancel");
+
+  const alertResult = await alert.presentAlert();
+
+  if (alertResult === 0) {
+    const username = alert.textFieldValue(0);
+    const password = alert.textFieldValue(1);
+    const subscriberID = alert.textFieldValue(2);
+
+    Keychain.set("slt_username", username);
+    Keychain.set("slt_password", password);
+    Keychain.set("slt_subscriberID", subscriberID);
+
+    return { username, password, subscriberID };
+  } else {
+    throw new Error("User canceled login.");
+  }
+}
+
+// Function to get the saved username, password, and subscriber ID or prompt for new ones
+async function getSavedCredentials() {
+  let username, password, subscriberID;
+
+  if (Keychain.contains("slt_username")) {
+    username = Keychain.get("slt_username");
+  }
+  if (Keychain.contains("slt_password")) {
+    password = Keychain.get("slt_password");
+  }
+  if (Keychain.contains("slt_subscriberID")) {
+    subscriberID = Keychain.get("slt_subscriberID");
+  }
+
+  if (!username || !password || !subscriberID) {
+    ({ username, password, subscriberID } =
+      await getUsernamePasswordAndSubscriberID());
+  }
+
+  return { username, password, subscriberID };
+}
+
 // Function to login and get the access token
-async function loginAndGetAccessToken() {
+async function loginAndGetAccessToken(username, password) {
   const request = new Request(LOGIN_URL);
   request.method = "POST";
   request.headers = {
@@ -18,8 +68,8 @@ async function loginAndGetAccessToken() {
     "X-IBM-Client-Id": CLIENT_ID,
   };
   request.body = `username=${encodeURIComponent(
-    USERNAME
-  )}&password=${encodeURIComponent(PASSWORD)}&channelID=${encodeURIComponent(
+    username
+  )}&password=${encodeURIComponent(password)}&channelID=${encodeURIComponent(
     CHANNEL_ID
   )}`;
   const response = await request.load();
@@ -28,15 +78,29 @@ async function loginAndGetAccessToken() {
 }
 
 // Function to get the package summary
-async function getPackageSummary(accessToken) {
-  const request = new Request(DASHBOARD_URL);
+async function getPackageSummary(accessToken, subscriberID) {
+  const request = new Request(DASHBOARD_URL + subscriberID);
   request.headers = {
     Authorization: `Bearer ${accessToken}`,
     "X-IBM-Client-Id": CLIENT_ID,
   };
   const response = await request.load();
   const jsonResponse = JSON.parse(response.toRawString());
-  return jsonResponse.dataBundle.package_summary;
+  const dataBundle = jsonResponse.dataBundle;
+
+  let packageSummary;
+
+  if (dataBundle.my_package_summary.limit === null) {
+    packageSummary = {
+      limit: dataBundle.vas_data_summary.limit,
+      used: dataBundle.vas_data_summary.used,
+      volume_unit: dataBundle.vas_data_summary.volume_unit,
+    };
+  } else {
+    packageSummary = dataBundle.my_package_summary;
+  }
+
+  return packageSummary;
 }
 
 // Function to create and style the widget
@@ -121,8 +185,9 @@ async function createWidget(packageSummary) {
 // Main function to run the script
 async function main() {
   try {
-    const accessToken = await loginAndGetAccessToken();
-    const packageSummary = await getPackageSummary(accessToken);
+    const { username, password, subscriberID } = await getSavedCredentials();
+    const accessToken = await loginAndGetAccessToken(username, password);
+    const packageSummary = await getPackageSummary(accessToken, subscriberID);
     console.log(packageSummary);
 
     // Create and display the widget
