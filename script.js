@@ -59,6 +59,12 @@ async function getSavedCredentials() {
   return { username, password, subscriberID };
 }
 
+async function resetKeyChainParams() {
+  Keychain.remove("slt_username");
+  Keychain.remove("slt_password");
+  Keychain.remove("slt_subscriberID");
+}
+
 // Function to login and get the access token
 async function loginAndGetAccessToken(username, password) {
   const request = new Request(LOGIN_URL);
@@ -74,6 +80,13 @@ async function loginAndGetAccessToken(username, password) {
   )}`;
   const response = await request.load();
   const jsonResponse = JSON.parse(response.toRawString());
+
+  if (jsonResponse.errorMessage) {
+    await resetKeyChainParams();
+
+    throw new Error(jsonResponse.errorMessage);
+  }
+
   return jsonResponse.accessToken;
 }
 
@@ -86,6 +99,17 @@ async function getPackageSummary(accessToken, subscriberID) {
   };
   const response = await request.load();
   const jsonResponse = JSON.parse(response.toRawString());
+
+  if (jsonResponse.errorMessege) {
+    await resetKeyChainParams();
+
+    if (jsonResponse.errorMessege.includes("No privilege")) {
+      throw new Error("Invalid subscriber ID.");
+    } else {
+      throw new Error(jsonResponse.errorMessege);
+    }
+  }
+
   const dataBundle = jsonResponse.dataBundle;
 
   let packageSummary;
