@@ -2,8 +2,6 @@
 
 This repository contains the code for a Scriptable widget that displays the remaining daily data usage for SLT Mobitel users. The widget fetches data from the SLT Mobitel API and presents it in a visually appealing and easy-to-understand format. It has a modern design that matches the SLT Mobitel theme, and it updates automatically every 30 minutes.
 
-> ⚠️ **Warning**: Currently, the widget is only working with UNLIMITED FLASH packages. If there's enough interest, will may extend the widget to work with any SLT broadband packages.
-
 ## Features 🌟
 
 - Displays remaining daily data usage for SLT Mobitel users
