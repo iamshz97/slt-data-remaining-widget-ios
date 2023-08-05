@@ -4,8 +4,7 @@ const DASHBOARD_URL =
   "https://omniscapp.slt.lk/mobitelint/slt/api/BBVAS/UsageSummary?subscriberID=";
 const CHANNEL_ID = "WEB";
 const CLIENT_ID = "41aed706-8fdf-4b1e-883e-91e44d7f379b";
-const LOGO_URL =
-  "https://play-lh.googleusercontent.com/qCEwpUDhKk1UtqGGgKFXQR9hhve9xw9fKg39pHbMAsVkgwSmfUGlidInEtrZEzSwdGo";
+const LOGO_URL = "https://i.ibb.co/BC5Tn8N/IMG-4078.png";
 
 // Function to get the username, password, and subscriber ID from a pop-up
 async function getUsernamePasswordAndSubscriberID() {
@@ -127,59 +126,50 @@ async function getPackageSummary(accessToken, subscriberID) {
   return packageSummary;
 }
 
-// Function to create and style the widget
-// Modify the createWidget function
 async function createWidget(packageSummary) {
   const widget = new ListWidget();
 
-  // Set widget background color to white
-  widget.backgroundColor = Color.white();
+  const isDarkMode = Device.isUsingDarkAppearance();
+  widget.backgroundColor = isDarkMode ? Color.black() : Color.white();
+  const textColor = isDarkMode ? Color.gray() : Color.black();
+  const progressBarColor = isDarkMode ? Color.blue() : Color.blue();
 
-  // Set widget padding
   widget.setPadding(16, 16, 16, 16);
 
-  // Create horizontal stack for logo and title
   const titleStack = widget.addStack();
   titleStack.layoutHorizontally();
   titleStack.centerAlignContent();
 
-  // Add logo
   const logoReq = new Request(LOGO_URL);
   const logoImg = await logoReq.loadImage();
   const logo = titleStack.addImage(logoImg);
   logo.imageSize = new Size(50, 50);
+
+  titleStack.addSpacer();
   logo.rightAlignImage();
-  logo.applyFillingContentMode();
 
-  // Add spacing between logo and title
-  titleStack.addSpacer(8);
+  const titleText = titleStack.addText("WiFi");
+  titleText.textColor = textColor;
+  titleText.font = new Font("Helvetica Neue", 18);
 
-  // Add title text
-  const titleText = titleStack.addText("Usage");
-  titleText.textColor = Color.black();
-  titleText.font = Font.boldSystemFont(16);
-  titleText.lineLimit = 2; // Set the maximum number of lines for the title
+  widget.addSpacer(12);
 
-  // Add spacing
-  widget.addSpacer(8);
+  const textFont = new Font("Arial", 14);
 
-  // Add limit and used text
   const limitText = widget.addText(
     `Limit: ${packageSummary.limit} ${packageSummary.volume_unit}`
   );
-  limitText.textColor = Color.black();
-  limitText.font = Font.semiboldSystemFont(16);
+  limitText.textColor = textColor;
+  limitText.font = textFont;
 
   const usedText = widget.addText(
     `Used: ${packageSummary.used} ${packageSummary.volume_unit}`
   );
-  usedText.textColor = Color.blue(); // SLT Mobitel blue
-  usedText.font = Font.semiboldSystemFont(16);
+  usedText.textColor = progressBarColor;
+  usedText.font = textFont;
 
-  // Add spacing
-  widget.addSpacer(8);
+  widget.addSpacer(12);
 
-  // Add progress bar
   const progressBarWidth = 200;
   const progressBarHeight = 10;
   const usedPercentage = (packageSummary.used / packageSummary.limit) * 100;
@@ -187,12 +177,10 @@ async function createWidget(packageSummary) {
   const context = new DrawContext();
   context.size = new Size(progressBarWidth, progressBarHeight);
 
-  // Draw background bar
-  context.setFillColor(Color.lightGray());
+  context.setFillColor(isDarkMode ? Color.darkGray() : Color.lightGray());
   context.fill(new Rect(0, 0, progressBarWidth, progressBarHeight));
 
-  // Draw progress bar
-  context.setFillColor(Color.blue()); // SLT Mobitel blue
+  context.setFillColor(progressBarColor);
   context.fill(
     new Rect(0, 0, progressBarWidth * (usedPercentage / 100), progressBarHeight)
   );
@@ -200,8 +188,7 @@ async function createWidget(packageSummary) {
   const progressImage = context.getImage();
   const progress = widget.addImage(progressImage);
 
-  // Refresh interval
-  widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * 30); // Refresh after 30 minutes
+  widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * 30);
 
   return widget;
 }
