@@ -63,6 +63,20 @@ async function resetKeyChainParams() {
   Keychain.remove("slt_username");
   Keychain.remove("slt_password");
   Keychain.remove("slt_subscriberID");
+  Keychain.remove("slt_accessToken");
+}
+
+// Function to get cached access token
+function getCachedAccessToken() {
+  if (Keychain.contains("slt_accessToken")) {
+    return Keychain.get("slt_accessToken");
+  }
+  return null;
+}
+
+// Function to save access token to cache
+function saveAccessToken(accessToken) {
+  Keychain.set("slt_accessToken", accessToken);
 }
 
 // Function to login and get the access token
@@ -87,7 +101,9 @@ async function loginAndGetAccessToken(username, password) {
     throw new Error(jsonResponse.errorMessage);
   }
 
-  return jsonResponse.accessToken;
+  const accessToken = jsonResponse.accessToken;
+  saveAccessToken(accessToken);
+  return accessToken;
 }
 
 // Function to get the package summary
@@ -97,12 +113,33 @@ async function getPackageSummary(accessToken, subscriberID) {
     Authorization: `Bearer ${accessToken}`,
     "X-IBM-Client-Id": CLIENT_ID,
   };
-  const response = await request.load();
-  const jsonResponse = JSON.parse(response.toRawString());
+  let response;
+  let jsonResponse;
+  
+  try {
+    response = await request.load();
+    jsonResponse = JSON.parse(response.toRawString());
+  } catch (error) {
+    // If request fails, it might be an auth error
+    Keychain.remove("slt_accessToken");
+    throw new Error("AUTH_ERROR");
+  }
+
+  // Check if authentication failed based on error message
+  const isAuthError = jsonResponse.errorMessege && (
+    jsonResponse.errorMessege.toLowerCase().includes("unauthorized") ||
+    jsonResponse.errorMessege.toLowerCase().includes("token") ||
+    jsonResponse.errorMessege.toLowerCase().includes("authentication") ||
+    jsonResponse.errorMessege.toLowerCase().includes("expired")
+  );
+
+  if (isAuthError) {
+    // Clear cached token on auth error
+    Keychain.remove("slt_accessToken");
+    throw new Error("AUTH_ERROR");
+  }
 
   if (!jsonResponse.isSuccess || jsonResponse.errorMessege) {
-    await resetKeyChainParams();
-
     if (jsonResponse.errorMessege) {
       if (jsonResponse.errorMessege.includes("No privilege")) {
         throw new Error("Invalid subscriber ID.");
@@ -189,16 +226,43 @@ async function createWidget(packageSummary) {
 async function main() {
   try {
     const { username, password, subscriberID } = await getSavedCredentials();
-    const accessToken = await loginAndGetAccessToken(username, password);
-    const packageSummary = await getPackageSummary(accessToken, subscriberID);
-    console.log(packageSummary);
+    
+    // Try to use cached access token first
+    let accessToken = getCachedAccessToken();
+    
+    // If no cached token, fetch a new one
+    if (!accessToken) {
+      accessToken = await loginAndGetAccessToken(username, password);
+    }
+    
+    try {
+      const packageSummary = await getPackageSummary(accessToken, subscriberID);
+      console.log(packageSummary);
 
-    // Create and display the widget
-    const widget = await createWidget(packageSummary);
-    if (config.runsInWidget) {
-      Script.setWidget(widget);
-    } else {
-      widget.presentMedium();
+      // Create and display the widget
+      const widget = await createWidget(packageSummary);
+      if (config.runsInWidget) {
+        Script.setWidget(widget);
+      } else {
+        widget.presentMedium();
+      }
+    } catch (error) {
+      // If auth error, try to get a new token and retry
+      if (error.message === "AUTH_ERROR") {
+        accessToken = await loginAndGetAccessToken(username, password);
+        const packageSummary = await getPackageSummary(accessToken, subscriberID);
+        console.log(packageSummary);
+
+        // Create and display the widget
+        const widget = await createWidget(packageSummary);
+        if (config.runsInWidget) {
+          Script.setWidget(widget);
+        } else {
+          widget.presentMedium();
+        }
+      } else {
+        throw error;
+      }
     }
   } catch (error) {
     console.error(error);
