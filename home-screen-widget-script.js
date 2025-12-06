@@ -65,6 +65,56 @@ async function resetKeyChainParams() {
   Keychain.remove("slt_accessToken");
 }
 
+// Function to get refresh interval from user (minimum 15 minutes)
+async function getRefreshInterval() {
+  const MIN_REFRESH_MINUTES = 15;
+  
+  // Check if refresh interval is already saved
+  if (Keychain.contains("slt_refreshIntervalMinutes")) {
+    const savedInterval = parseInt(Keychain.get("slt_refreshIntervalMinutes"));
+    if (savedInterval >= MIN_REFRESH_MINUTES) {
+      return savedInterval;
+    }
+  }
+  
+  // Prompt user for refresh interval
+  let refreshInterval = null;
+  while (!refreshInterval || refreshInterval < MIN_REFRESH_MINUTES) {
+    const alert = new Alert();
+    alert.title = "Widget Refresh Interval";
+    alert.message = `How often should the widget refresh? (Minimum: ${MIN_REFRESH_MINUTES} minutes)`;
+    
+    alert.addTextField("Refresh interval in minutes", "30");
+    alert.addAction("Set");
+    alert.addCancelAction("Cancel");
+    
+    const alertResult = await alert.presentAlert();
+    
+    if (alertResult === 0) {
+      const inputValue = alert.textFieldValue(0);
+      refreshInterval = parseInt(inputValue);
+      
+      if (isNaN(refreshInterval) || refreshInterval < MIN_REFRESH_MINUTES) {
+        const errorAlert = new Alert();
+        errorAlert.title = "Invalid Input";
+        errorAlert.message = `Please enter a number that is at least ${MIN_REFRESH_MINUTES} minutes.`;
+        errorAlert.addAction("OK");
+        await errorAlert.presentAlert();
+        continue;
+      }
+      
+      // Save the refresh interval
+      Keychain.set("slt_refreshIntervalMinutes", refreshInterval.toString());
+      return refreshInterval;
+    } else {
+      // User canceled, use default minimum
+      refreshInterval = MIN_REFRESH_MINUTES;
+      Keychain.set("slt_refreshIntervalMinutes", refreshInterval.toString());
+      return refreshInterval;
+    }
+  }
+}
+
 // Function to get cached access token
 function getCachedAccessToken() {
   if (Keychain.contains("slt_accessToken")) {
@@ -229,7 +279,9 @@ async function createWidget(packageSummary) {
   const progressImage = context.getImage();
   const progress = widget.addImage(progressImage);
 
-  widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * 30);
+  // Get refresh interval and set refresh date
+  const refreshIntervalMinutes = await getRefreshInterval();
+  widget.refreshAfterDate = new Date(Date.now() + 1000 * 60 * refreshIntervalMinutes);
 
   return widget;
 }
