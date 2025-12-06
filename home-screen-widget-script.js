@@ -284,8 +284,10 @@ async function checkAndSendNotifications(packageSummary) {
   // Check each threshold in descending order
   for (const threshold of NOTIFICATION_THRESHOLDS) {
     // Check if we've crossed below the threshold
-    const crossedBelow = currentPercentage <= threshold && 
-                        (lastPercentage === null || lastPercentage > threshold);
+    // Only trigger if we have a previous percentage and we crossed from above
+    const crossedBelow = lastPercentage !== null && 
+                        currentPercentage <= threshold && 
+                        lastPercentage > threshold;
     
     // If crossed below and not notified today, send notification
     if (crossedBelow && !wasNotificationSentToday(threshold)) {

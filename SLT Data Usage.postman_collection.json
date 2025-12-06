@@ -1,0 +1,255 @@
+{
+	"info": {
+		"_postman_id": "e782cebe-3b8d-425d-8299-f26a1c3bdb2b",
+		"name": "SLT Data Usage",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12619280",
+		"_collection_link": "https://speeding-flare-129099.postman.co/workspace/SLT~eaf776f0-6df4-4a25-9f47-0389681f9353/collection/12619280-e782cebe-3b8d-425d-8299-f26a1c3bdb2b?action=share&source=collection_link&creator=12619280"
+	},
+	"item": [
+		{
+			"name": "Login API",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": " application/json, text/plain, */*",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": " gzip, deflate, br, zstd",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": " en-US,en;q=0.9",
+						"type": "text"
+					},
+					{
+						"key": "Connection",
+						"value": " keep-alive",
+						"type": "text"
+					},
+					{
+						"key": "Content-Length",
+						"value": " 76",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": " application/x-www-form-urlencoded",
+						"type": "text"
+					},
+					{
+						"key": "Host",
+						"value": " omniscapp.slt.lk",
+						"type": "text"
+					},
+					{
+						"key": "Origin",
+						"value": " https://myslt.slt.lk",
+						"type": "text"
+					},
+					{
+						"key": "Referer",
+						"value": " https://myslt.slt.lk/",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": " empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": " cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": " same-site",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": " Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+						"type": "text"
+					},
+					{
+						"key": "X-IBM-Client-Id",
+						"value": " b7402e9d66808f762ccedbe42c20668e",
+						"type": "text"
+					},
+					{
+						"key": "sec-ch-ua",
+						"value": " \"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+						"type": "text"
+					},
+					{
+						"key": "sec-ch-ua-mobile",
+						"value": " ?0",
+						"type": "text"
+					},
+					{
+						"key": "sec-ch-ua-platform",
+						"value": " \"Windows\"",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "asdsad@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "sadsadsadsd",
+							"type": "text"
+						},
+						{
+							"key": "channelID",
+							"value": "WEB",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://omniscapp.slt.lk/slt/ext/api/Account/Login",
+					"protocol": "https",
+					"host": [
+						"omniscapp",
+						"slt",
+						"lk"
+					],
+					"path": [
+						"slt",
+						"ext",
+						"api",
+						"Account",
+						"Login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get usage data",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": " application/json, text/plain, */*",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Encoding",
+						"value": " gzip, deflate, br, zstd",
+						"type": "text"
+					},
+					{
+						"key": "Accept-Language",
+						"value": " en-US,en;q=0.9",
+						"type": "text"
+					},
+					{
+						"key": "Authorization",
+						"value": " bearer 62_hEIi2llBTiAZ2aPKf_627rSCivBafKIhWvKbLXQqbuI2QBlgX4mZOdJt2S-jAQL3QOIKFPaBid7A3jyM9ePOtp4TjTLWR_oFD1QKsqDB4XgR4GmdT-RbcgbwkzFOAHtQYI07a7hyoTISVHN_1THw2FFCdHA7gu_olBRlABKPfgQs7VyI9KC7tZMfZkkFI0feZY9nHzFmD9dLQbpPBkNhnkS7cn_8L2Zw81k68W5ws168lr36GOkuiynVEQvx2sFcWpuC-s-DalyTgWJLvZVp7QznV6A6n7278no57P8LHbsH8",
+						"type": "text"
+					},
+					{
+						"key": "Connection",
+						"value": " keep-alive",
+						"type": "text"
+					},
+					{
+						"key": "Host",
+						"value": " omniscapp.slt.lk",
+						"type": "text"
+					},
+					{
+						"key": "Origin",
+						"value": " https://myslt.slt.lk",
+						"type": "text"
+					},
+					{
+						"key": "Referer",
+						"value": " https://myslt.slt.lk/",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": " empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": " cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": " same-site",
+						"type": "text"
+					},
+					{
+						"key": "User-Agent",
+						"value": " Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0",
+						"type": "text"
+					},
+					{
+						"key": "X-IBM-Client-Id",
+						"value": " b7402e9d66808f762ccedbe42c20668e",
+						"type": "text"
+					},
+					{
+						"key": "sec-ch-ua",
+						"value": " \"Microsoft Edge\";v=\"141\", \"Not?A_Brand\";v=\"8\", \"Chromium\";v=\"141\"",
+						"type": "text"
+					},
+					{
+						"key": "sec-ch-ua-mobile",
+						"value": " ?0",
+						"type": "text"
+					},
+					{
+						"key": "sec-ch-ua-platform",
+						"value": " \"Windows\"",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://omniscapp.slt.lk/slt/ext/api/BBVAS/UsageSummary?subscriberID=94812232279",
+					"protocol": "https",
+					"host": [
+						"omniscapp",
+						"slt",
+						"lk"
+					],
+					"path": [
+						"slt",
+						"ext",
+						"api",
+						"BBVAS",
+						"UsageSummary"
+					],
+					"query": [
+						{
+							"key": "subscriberID",
+							"value": "94812232279"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
