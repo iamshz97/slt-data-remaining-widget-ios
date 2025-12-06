@@ -6,6 +6,27 @@ const CHANNEL_ID = "WEB";
 const CLIENT_ID = "b7402e9d66808f762ccedbe42c20668e";
 const LOGO_URL = "https://i.ibb.co/BC5Tn8N/IMG-4078.png";
 
+// Notification thresholds and messages
+const NOTIFICATION_THRESHOLDS = [75, 50, 25, 10];
+const NOTIFICATION_MESSAGES = {
+  75: {
+    title: "⚠️ Data Usage Alert",
+    body: "You've used 75% of your data. Consider monitoring your usage."
+  },
+  50: {
+    title: "📊 Halfway There",
+    body: "50% of your data has been used. You're halfway through your plan."
+  },
+  25: {
+    title: "🔔 Low Data Warning",
+    body: "Only 25% of your data remaining. Use it wisely!"
+  },
+  10: {
+    title: "🚨 Critical Data Alert",
+    body: "Only 10% of your data left! Consider upgrading or reducing usage."
+  }
+};
+
 // Function to get the username, password, and subscriber ID from a pop-up
 async function getUsernamePasswordAndSubscriberID() {
   const alert = new Alert();
@@ -115,6 +136,38 @@ async function getRefreshInterval() {
   }
 }
 
+// Function to get today's date in YYYY-MM-DD format
+function getTodayDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Function to check if notification was sent today for a threshold
+function wasNotificationSentToday(threshold) {
+  const key = `cache_key_date_shown_${threshold}`;
+  if (Keychain.contains(key)) {
+    const storedDate = Keychain.get(key);
+    const todayDate = getTodayDateString();
+    if (storedDate === todayDate) {
+      return true;
+    } else {
+      // Clear old entry if date doesn't match
+      Keychain.remove(key);
+    }
+  }
+  return false;
+}
+
+// Function to mark notification as sent for today
+function markNotificationSentToday(threshold) {
+  const key = `cache_key_date_shown_${threshold}`;
+  const todayDate = getTodayDateString();
+  Keychain.set(key, todayDate);
+}
+
 // Function to get cached access token
 function getCachedAccessToken() {
   if (Keychain.contains("slt_accessToken")) {
@@ -217,6 +270,41 @@ async function getPackageSummary(accessToken, subscriberID) {
   return packageSummary;
 }
 
+// Function to check and send notifications for data usage thresholds
+async function checkAndSendNotifications(packageSummary) {
+  // Calculate current usage percentage
+  const currentPercentage = (packageSummary.used / packageSummary.limit) * 100;
+  
+  // Get last known percentage from Keychain
+  let lastPercentage = null;
+  if (Keychain.contains("slt_lastUsagePercentage")) {
+    lastPercentage = parseFloat(Keychain.get("slt_lastUsagePercentage"));
+  }
+  
+  // Check each threshold in descending order
+  for (const threshold of NOTIFICATION_THRESHOLDS) {
+    // Check if we've crossed below the threshold
+    const crossedBelow = currentPercentage <= threshold && 
+                        (lastPercentage === null || lastPercentage > threshold);
+    
+    // If crossed below and not notified today, send notification
+    if (crossedBelow && !wasNotificationSentToday(threshold)) {
+      const message = NOTIFICATION_MESSAGES[threshold];
+      
+      const notification = new Notification();
+      notification.title = message.title;
+      notification.body = message.body;
+      notification.setTriggerDate(new Date(Date.now() + 1000)); // 1 second from now
+      
+      await notification.schedule();
+      markNotificationSentToday(threshold);
+    }
+  }
+  
+  // Update last known percentage
+  Keychain.set("slt_lastUsagePercentage", currentPercentage.toString());
+}
+
 async function createWidget(packageSummary) {
   const widget = new ListWidget();
 
@@ -303,6 +391,9 @@ async function main() {
       const packageSummary = await getPackageSummary(accessToken, subscriberID);
       console.log(packageSummary);
 
+      // Check and send notifications for data usage thresholds
+      await checkAndSendNotifications(packageSummary);
+
       // Create and display the widget
       const widget = await createWidget(packageSummary);
       if (config.runsInWidget) {
@@ -316,6 +407,9 @@ async function main() {
         accessToken = await loginAndGetAccessToken(username, password);
         const packageSummary = await getPackageSummary(accessToken, subscriberID);
         console.log(packageSummary);
+
+        // Check and send notifications for data usage thresholds
+        await checkAndSendNotifications(packageSummary);
 
         // Create and display the widget
         const widget = await createWidget(packageSummary);
