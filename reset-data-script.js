@@ -1,3 +1,10 @@
 Keychain.remove("slt_username");
 Keychain.remove("slt_password");
 Keychain.remove("slt_subscriberID");
+Keychain.remove("slt_accessToken");
+Keychain.remove("slt_refreshIntervalMinutes");
+Keychain.remove("slt_lastUsagePercentage");
+Keychain.remove("cache_key_date_shown_75");
+Keychain.remove("cache_key_date_shown_50");
+Keychain.remove("cache_key_date_shown_25");
+Keychain.remove("cache_key_date_shown_10");
