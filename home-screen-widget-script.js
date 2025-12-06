@@ -1,9 +1,9 @@
 // Define constants
-const LOGIN_URL = "https://omniscapp.slt.lk/mobitelint/slt/api/Account/Login";
+const LOGIN_URL = "https://omniscapp.slt.lk/slt/ext/api/Account/Login";
 const DASHBOARD_URL =
-  "https://omniscapp.slt.lk/mobitelint/slt/api/BBVAS/UsageSummary?subscriberID=";
+  "https://omniscapp.slt.lk/slt/ext/api/BBVAS/UsageSummary?subscriberID=";
 const CHANNEL_ID = "WEB";
-const CLIENT_ID = "41aed706-8fdf-4b1e-883e-91e44d7f379b";
+const CLIENT_ID = "b7402e9d66808f762ccedbe42c20668e";
 const LOGO_URL = "https://i.ibb.co/BC5Tn8N/IMG-4078.png";
 
 // Function to get the username, password, and subscriber ID from a pop-up
@@ -99,13 +99,17 @@ async function getPackageSummary(accessToken, subscriberID) {
   const response = await request.load();
   const jsonResponse = JSON.parse(response.toRawString());
 
-  if (jsonResponse.errorMessege) {
+  if (!jsonResponse.isSuccess || jsonResponse.errorMessege) {
     await resetKeyChainParams();
 
-    if (jsonResponse.errorMessege.includes("No privilege")) {
-      throw new Error("Invalid subscriber ID.");
+    if (jsonResponse.errorMessege) {
+      if (jsonResponse.errorMessege.includes("No privilege")) {
+        throw new Error("Invalid subscriber ID.");
+      } else {
+        throw new Error(jsonResponse.errorMessege);
+      }
     } else {
-      throw new Error(jsonResponse.errorMessege);
+      throw new Error("Failed to fetch package summary.");
     }
   }
 
